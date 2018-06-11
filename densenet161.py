@@ -210,22 +210,15 @@ import numpy as np
 import cv2
 from keras.utils import np_utils
 
-count = 0
-database = np.load("data/mini_train_x_0.npy")
-
-for i in range(1, 5):
-    database = np.concatenate((database, np.load("data/mini_train_x_" + str(i) + ".npy")))
-
-for i in range(0, 5):
-    database = np.concatenate((database, np.load("data/mini_test_x_" + str(i) + ".npy")))
-
-print database.shape
-
-truthVals = np.load("data/stage2_yTrue.npy")
-
-nb_train_samples = 180 # 3000 training samples
-nb_valid_samples = 20 # 100 validation samples
+nb_train_samples = 2000 # 3000 training samples
+nb_valid_samples = 100 # 100 validation samples
 num_classes = 2
+
+database = np.load("data2/x_train.npy")
+database = np.concatenate((database, np.load("data2/x_test.npy")))
+
+truthVals = np.load("data2/stage1_yTrue.npy")
+truthVals = np.concatenate((truthVals, np.load("data2/stage2_yTrue.npy")))
 
 def load_model(img_rows, img_cols):
     X_train = database[0:nb_train_samples]
@@ -233,31 +226,23 @@ def load_model(img_rows, img_cols):
     X_valid = database[nb_train_samples:nb_train_samples + nb_valid_samples]
     Y_valid = truthVals[nb_train_samples:nb_train_samples + nb_valid_samples]
 
-    # print truthVals
-    # print "lengh is " + str(len(truthVals))
-
-    print X_train.shape
-
-    # np.reshape(X_train.shape,(18, 224, 224, 3))
-    # img.transpose(2,0,1).reshape(3,-1)
-
     temp = np.swapaxes(X_train, 1, 3)
     temp2 = np.swapaxes(X_valid, 1, 3)
 
-    new_x_train = np.zeros((nb_train_samples, 500, 64*64))
-    new_x_valid = np.zeros((nb_valid_samples, 500, 64*64))
+    new_x_train = np.zeros((nb_train_samples, 64, 64*64))
+    new_x_valid = np.zeros((nb_valid_samples, 64, 64*64))
 
 
     for i in range(0, nb_train_samples):
-        for j in range(0, 500):
+        for j in range(0, 64):
             new_x_train[i][j] = temp[i][j].flatten()
 
     for i in range(0, nb_valid_samples):
-        for j in range(0, 500):
+        for j in range(0, 64):
             new_x_valid[i][j] = temp2[i][j].flatten()
 
-    new_x_train2 = np.zeros((nb_train_samples, 500, 64*64, 3))
-    new_x_valid2 = np.zeros((nb_valid_samples, 500, 64*64, 3))
+    new_x_train2 = np.zeros((nb_train_samples, 64, 64*64, 3))
+    new_x_valid2 = np.zeros((nb_valid_samples, 64, 64*64, 3))
 
     for i in range(0,3):
         new_x_train2[:,:,:,i] = new_x_train
@@ -271,7 +256,6 @@ def load_model(img_rows, img_cols):
     Y_train = np_utils.to_categorical(Y_train[:nb_train_samples], num_classes)
     Y_valid = np_utils.to_categorical(Y_valid[:nb_valid_samples], num_classes)
 
-    # print X_train.shape
     return new_x_train2, Y_train, new_x_valid2, Y_valid
 
 
@@ -283,7 +267,7 @@ if __name__ == '__main__':
     channel = 3
     num_classes = 2 
     batch_size = 8
-    nb_epoch = 10
+    nb_epoch = 1
 
     # Load Cifar10 data. Please implement your own load_data() module for your own dataset
     X_train, Y_train, X_valid, Y_valid = load_model(img_rows, img_cols)
